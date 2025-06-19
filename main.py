@@ -27,7 +27,7 @@ PIECE_IMGS= {-1: pygame.image.load('imgs/red_piece.png'), 1: pygame.image.load('
 PIECE_DIM = (PIECE_IMGS[-1].get_width(), PIECE_IMGS[-1].get_height())
 BOARD_IMG = pygame.image.load('imgs/board.png')
 
-def main(p1= 'RLbot', p2 = 'RLbot', epochs = 50, self_play = False, exp_dir = 'RLbot', test_paths = None):
+def main(p1= 'RLbot', p2 = 'RLbotDDQN', epochs = 50, self_play = True, exp_dir = 'RLbot', test_paths = None):
     SCORE_COUNTS = {-1: 0.0, 1: 0.0}
     WIN_RATES = {-1: 0.0, 1: 0.0}
 
@@ -227,16 +227,17 @@ def main(p1= 'RLbot', p2 = 'RLbot', epochs = 50, self_play = False, exp_dir = 'R
                         curr_turn *= -1; curr_player = players[curr_turn]
 
         if curr_player.name!= 'player':
-            is_rl_bot = curr_player.name == 'RLbot'
+            is_rl_bot = 'RLbot' in curr_player.name
             passed_state = PIECE_ARRAYS if is_rl_bot else BOARD_ARRAY
             #Determine model weights based on simul
             if is_test and (len(GAME_SEQ) <2) and is_rl_bot:
                 curr_player.load_model(test_paths[curr_player.turn])
-            if self_play and all(p == 'RLbot' for p in [p1,p2]):
-                curr_player.model.load_state_dict(players[-curr_turn].model_state_dict())
+            # if self_play and all(p == 'RLbot' for p in [p1,p2]):
+            #     curr_player.model.load_state_dict(players[-curr_turn].model.state_dict())
 
             #get and make move
             col = curr_player.move(passed_state)
+            # print(f"{curr_player.name} chooses col: {col}")
             RESULT = place_piece(curr_turn , col)
             if is_rl_bot and not is_test:
                 curr_player.train(PIECE_ARRAYS, RESULT)
@@ -252,10 +253,18 @@ def main(p1= 'RLbot', p2 = 'RLbot', epochs = 50, self_play = False, exp_dir = 'R
         
         if RESULT is not None:
             results_df = log_result(results_df,first_turn)
-            refresh_game()
             first_turn*=-1; curr_player = players[first_turn]
             if not is_test and curr_player.turn == -1 and curr_player.stop_training:
                 break
+            win_side = RESULT.split('_')[1] if 'win' in RESULT else "0"
+            print(f"Game #{results_df.shape[0]+1} Win side:", win_side)
+            print(f'=====RESULT is {RESULT}')
+            if win_side == "1" or win_side== "-1":
+                print(PIECE_ARRAYS[int(win_side)])
+                print("==========================Loosing side piece=======================")
+                print(PIECE_ARRAYS[-int(win_side)])
+            refresh_game()
+
         if results_df.shape[0] == epochs:
             break
 
@@ -283,9 +292,9 @@ def main(p1= 'RLbot', p2 = 'RLbot', epochs = 50, self_play = False, exp_dir = 'R
 if __name__ == "__main__":
     main(
         p1 = 'RLbot',
-        p2 = 'RLbot',
+        p2 = 'RLbotDDQN',
         epochs= 50,
-        self_play= False,
+        self_play= True,
         exp_dir = 'RLbot',
         )
         
