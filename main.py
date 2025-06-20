@@ -97,7 +97,7 @@ def main(p1= 'RLbot', p2 = 'RLbotDDQN', epochs = 50, self_play = True, exp_dir =
                 if not any(search_sides):
                     break
             axis_sums.append(sum_dir)
-        return any([s>= connect_n for s in axis_sums])
+        return any([s+1>= connect_n for s in axis_sums])
 
 
     def place_piece(turn, col):
@@ -256,13 +256,13 @@ def main(p1= 'RLbot', p2 = 'RLbotDDQN', epochs = 50, self_play = True, exp_dir =
             first_turn*=-1; curr_player = players[first_turn]
             if not is_test and curr_player.turn == -1 and curr_player.stop_training:
                 break
-            win_side = RESULT.split('_')[1] if 'win' in RESULT else "0"
-            print(f"Game #{results_df.shape[0]+1} Win side:", win_side)
-            print(f'=====RESULT is {RESULT}')
-            if win_side == "1" or win_side== "-1":
-                print(PIECE_ARRAYS[int(win_side)])
-                print("==========================Loosing side piece=======================")
-                print(PIECE_ARRAYS[-int(win_side)])
+            # win_side = RESULT.split('_')[1] if 'win' in RESULT else "0"
+            # print(f"Game #{results_df.shape[0]+1} Win side:", win_side)
+            # print(f'=====RESULT is {RESULT}')
+            # if win_side == "1" or win_side== "-1":
+                # print(PIECE_ARRAYS[int(win_side)])
+                # print("==========================Loosing side piece=======================")
+                # print(PIECE_ARRAYS[-int(win_side)])
             refresh_game()
 
         if results_df.shape[0] == epochs:
@@ -298,15 +298,3 @@ if __name__ == "__main__":
         exp_dir = 'RLbot',
         )
         
-
-
-
-
-
-
-
-
-
-        
-        
-
