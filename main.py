@@ -217,10 +217,19 @@ def main(p1, p2, epochs, self_play, exp_dir, test_paths):
             #take turn
             if event.type == pygame.MOUSEBUTTONDOWN and curr_player.name  == 'player':
                 col = (event.pos[0] - BUFFER_PIXELS) // PIECE_DIM[0]
-                if 0<= col < 7:
-                    if BOARD_ARRAY[0,col] == 0:                        
-                        RESULT = place_piece(curr_turn , col)
-                        curr_turn *= -1; curr_player = players[curr_turn]
+                if 0<= col < 7 and BOARD_ARRAY[0,col] == 0:                   
+                    RESULT = place_piece(curr_turn , col)
+                    if RESULT is not None:
+                        results_df = log_result(results_df, first_turn)
+                        first_turn *= -1
+                        curr_turn = first_turn
+                        curr_player = players[curr_turn]
+                        if not is_test and curr_player.turn == -1 and curr_player.stop_training:
+                            break
+                        refresh_game()
+                        continue
+                    curr_turn *= -1
+                    curr_player = players[curr_turn]
 
         if curr_player.name!= 'player':
             is_rl_bot = 'RLbot' in curr_player.name
@@ -290,7 +299,7 @@ if __name__ == "__main__":
     main(
         p2 = 'RLbotDDQN',
         p1 = 'RLbotDDQN',
-        epochs= 10000,
+        epochs= 1000,
         self_play= True,
         exp_dir = 'RLbot',
         test_paths= None 

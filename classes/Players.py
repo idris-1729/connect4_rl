@@ -215,10 +215,11 @@ class RLBotDDQN(RLBot):
         new_state = self.get_state_array(new_piece_arrays)     #new state s' after we make an action
         new_state = self.process_state(new_state)
         self.current_sqars[4] = new_state
+        reward = self.get_reward(result)
         curr_experience = (
             self.current_sqars[0],  # state_t
             self.current_sqars[2],  # action_t
-            self.current_sqars[3],  # reward_t
+            reward,     # reward_t
             self.current_sqars[4],  # next_state
             int(result is not None) # done
         )
