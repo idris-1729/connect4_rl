@@ -1,5 +1,7 @@
 import numpy as np
 
+'''key debugs to check the game logic is correct or not'''
+
 def check_connect_4_piece(connect_n: int, piece_array: np.array, placed_coord) -> bool:
     ''' Determines current placement of piece at @placed_coord results in connect4'''
     crawl_axis = np.array([

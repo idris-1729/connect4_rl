@@ -69,7 +69,7 @@ class RLBot(Player):
             self.activation(),
             nn.Linear(hidden_n_2, output_n),
         )
-        model.to(device = 'cpu')
+        model.to(device)
         return model
 
     def get_state_array(self, piece_arrays : Dict):
@@ -95,7 +95,8 @@ class RLBot(Player):
         available_cols = board_arr.sum(axis = 0) < board_arr.shape[0]
         available_indices = [i for i, valid in enumerate(available_cols) if valid]
         if len(available_indices) == 0:
-            return 0
+            raise ValueError("No legal moves available. Board is full or in an invalid state.")
+
         if random.random() < self.epsilon:
             action_ = random.choice(available_indices)
         else:
@@ -169,7 +170,7 @@ class RLBot(Player):
             self.reset_vars()
 
     def load_model(self, path):
-        self.model.load_state_dict(torch.load(path).state_dict())
+        self.model.load_state_dict(torch.load(path, map_location=device))
 
     def plot_results(self, show = False, save_path = None):
         fig,ax1 = plt.subplots()
@@ -214,8 +215,6 @@ class RLBotDDQN(RLBot):
         new_state = self.get_state_array(new_piece_arrays)     #new state s' after we make an action
         new_state = self.process_state(new_state)
         self.current_sqars[4] = new_state
-
-        reward = self.get_reward(result)
         curr_experience = (
             self.current_sqars[0],  # state_t
             self.current_sqars[2],  # action_t

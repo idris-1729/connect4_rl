@@ -1,11 +1,7 @@
 import numpy as np
 import pandas as pd
 import pygame 
-import pygame.freetype
-import random
-import math
 import datetime
-import time
 import os
 import matplotlib.pyplot as plt
 
@@ -27,7 +23,7 @@ PIECE_IMGS= {-1: pygame.image.load('imgs/red_piece.png'), 1: pygame.image.load('
 PIECE_DIM = (PIECE_IMGS[-1].get_width(), PIECE_IMGS[-1].get_height())
 BOARD_IMG = pygame.image.load('imgs/board.png')
 
-def main(p1= 'RLbot', p2 = 'RLbotDDQN', epochs = 50, self_play = True, exp_dir = 'RLbot', test_paths = None):
+def main(p1, p2, epochs, self_play, exp_dir, test_paths):
     SCORE_COUNTS = {-1: 0.0, 1: 0.0}
     WIN_RATES = {-1: 0.0, 1: 0.0}
 
@@ -220,7 +216,7 @@ def main(p1= 'RLbot', p2 = 'RLbotDDQN', epochs = 50, self_play = True, exp_dir =
 
             #take turn
             if event.type == pygame.MOUSEBUTTONDOWN and curr_player.name  == 'player':
-                col = col = (event.pos[0] - BUFFER_PIXELS) // PIECE_DIM[0]
+                col = (event.pos[0] - BUFFER_PIXELS) // PIECE_DIM[0]
                 if 0<= col < 7:
                     if BOARD_ARRAY[0,col] == 0:                        
                         RESULT = place_piece(curr_turn , col)
@@ -232,12 +228,10 @@ def main(p1= 'RLbot', p2 = 'RLbotDDQN', epochs = 50, self_play = True, exp_dir =
             #Determine model weights based on simul
             if is_test and (len(GAME_SEQ) <2) and is_rl_bot:
                 curr_player.load_model(test_paths[curr_player.turn])
-            # if self_play and all(p == 'RLbot' for p in [p1,p2]):
-            #     curr_player.model.load_state_dict(players[-curr_turn].model.state_dict())
+            if self_play and isinstance(players[-curr_turn], RLBotDDQN):
+                players[-curr_turn].model.load_state_dict(curr_player.model.state_dict())
 
-            #get and make move
             col = curr_player.move(passed_state)
-            # print(f"{curr_player.name} chooses col: {col}")
             RESULT = place_piece(curr_turn , col)
             if is_rl_bot and not is_test:
                 curr_player.train(PIECE_ARRAYS, RESULT)
@@ -253,7 +247,10 @@ def main(p1= 'RLbot', p2 = 'RLbotDDQN', epochs = 50, self_play = True, exp_dir =
         
         if RESULT is not None:
             results_df = log_result(results_df,first_turn)
-            first_turn*=-1; curr_player = players[first_turn]
+            first_turn*=-1
+            curr_player = players[curr_turn]
+            curr_turn = first_turn
+
             if not is_test and curr_player.turn == -1 and curr_player.stop_training:
                 break
             # win_side = RESULT.split('_')[1] if 'win' in RESULT else "0"
@@ -291,10 +288,15 @@ def main(p1= 'RLbot', p2 = 'RLbotDDQN', epochs = 50, self_play = True, exp_dir =
 
 if __name__ == "__main__":
     main(
-        p1 = 'RLbot',
         p2 = 'RLbotDDQN',
-        epochs= 50,
+        p1 = 'RLbotDDQN',
+        epochs= 10000,
         self_play= True,
         exp_dir = 'RLbot',
+        test_paths= None 
+        # test_paths= {
+        #     -1: 'models/date-06-20-2025-16-13p1-RLbotDDQNp2-RLbotDDQNself_play-Trueexp_dir-RLbotepochs-1000p1_win_rate-0.66p2_win_rate-0.34is_test-False/model.pth',
+        #     1: 'models/date-06-20-2025-16-19p1-RLbotDDQNp2-RLbotDDQNself_play-Trueexp_dir-RLbotepochs-1000p1_win_rate-0.72p2_win_rate-0.28is_test-False/model.pth'
+        # }
         )
         
